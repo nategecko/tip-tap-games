@@ -53,6 +53,7 @@ create index if not exists scores_recent_idx on public.scores (device_id, create
 insert into public.games (slug, title, rule_text, max_score, max_rate) values
   ('hardwater', 'Hardwater', 'Walk the ice. Crank the reel. Ease off when it runs.', 5000, 6),
   ('keeper',    'Keeper',    'Tap a side to dive. Stay put for the middle.',         1000, 1.5),
+  ('downhill',  'Downhill',  'Carve past the rocks. Ski the gates.',                20000, 60),
   ('fit',       'Fit',       'Drag to rotate. Match the hole.',                        2000, 3),
   ('lock',      'Lock',      'Tap when the rings meet.',                               2000, 2.5)
 on conflict (slug) do update

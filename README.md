@@ -81,7 +81,23 @@ The scrolling DOM is transparent chrome: score, rail, title, rule. The canvases 
 
 ## The games
 
-Four are loaded: **Hardwater**, **Keeper**, **Fit** and **Lock**.
+Five are loaded: **Hardwater**, **Keeper**, **Downhill**, **Fit** and **Lock**.
+
+### Downhill — three lanes down a piste
+
+Tap a side to carve into that lane and hold it. Rocks and trees end the run on
+contact; slalom gates pay a bonus for skiing through them, and a gate sitting
+beside a rock is a real decision rather than free points. Speed climbs the whole
+way and the camera FOV widens with it, which is where most of the sensation
+comes from.
+
+It shares its input with Keeper, so it deliberately differs on feel: you hold a
+lane instead of snapping back to centre, one hit ends the run rather than
+costing a life, and the score is distance rather than discrete events.
+
+Rows never block all three lanes and gaps never fall below reaction time, so
+every row has a legal answer. A path-finding bot cleared 2176m, which is the
+check that the difficulty curve is fair rather than merely steep.
 
 ### Keeper — you're in goal
 
@@ -161,7 +177,7 @@ game stays a single drop-in file.
 Against the build spec's Definition of Done:
 
 - [x] Vertical snap feed with momentum
-- [x] 3+ playable games — Hardwater, Keeper, Fit, Lock
+- [x] 3+ playable games — Hardwater, Keeper, Downhill, Fit, Lock
 - [x] Auto start / auto stop
 - [x] Endless feed
 - [x] Guest play, then login — device ID from the first swipe, OAuth offered
