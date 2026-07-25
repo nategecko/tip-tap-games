@@ -100,6 +100,88 @@ html,body{
   z-index:3;pointer-events:none;
 }
 
+/* ---------------- leaderboard / sign-in sheet ----------------
+   Sits over the feed, never replaces it — the brief is explicit that nobody
+   navigates away from the card to see a board or to sign in. */
+
+.sheet{position:fixed;left:0;right:0;top:0;bottom:0;z-index:20}
+.sheet[hidden]{display:none}
+
+.sheet-scrim{
+  position:absolute;left:0;right:0;top:0;bottom:0;
+  background:rgba(4,5,12,.62);
+  opacity:0;transition:opacity .22s ease;
+}
+.sheet.in .sheet-scrim{opacity:1}
+
+.sheet-body{
+  position:absolute;left:0;right:0;bottom:0;
+  max-height:82%;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:#15161f;
+  border-radius:20px 20px 0 0;
+  padding:8px 18px calc(22px + var(--safe-b));
+  box-shadow:0 -12px 40px rgba(0,0,0,.55);
+  transform:translateY(100%);
+  transition:transform .26s cubic-bezier(.2,.9,.3,1);
+}
+.sheet.in .sheet-body{transform:translateY(0)}
+
+.sheet-grab{
+  width:38px;height:4px;border-radius:2px;
+  background:rgba(244,243,239,.26);margin:2px auto 14px;
+}
+.sheet-title{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.sheet-sub{font-size:13px;color:var(--ink-dim);margin-top:3px;line-height:1.4}
+.sheet-head{margin-bottom:14px}
+
+.board{list-style:none;margin:0 0 4px;padding:0}
+.board li{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:11px;
+  font-size:14px;
+}
+.board li + li{margin-top:2px}
+.board li.me{background:rgba(125,227,255,.12);box-shadow:inset 0 0 0 1px rgba(125,227,255,.3)}
+.board .rk{
+  width:26px;flex:none;text-align:right;
+  color:var(--ink-dim);font-variant-numeric:tabular-nums;font-size:13px;
+}
+.board li.me .rk{color:#7de3ff}
+.board .av{
+  width:26px;height:26px;flex:none;border-radius:50%;
+  background:#2a2d3d;object-fit:cover;
+}
+.board .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board .sc{font-variant-numeric:tabular-nums;font-weight:600}
+.board .empty{color:var(--ink-dim);font-size:13px;padding:10px 2px}
+
+.sheet-auth{margin-top:16px}
+.auth-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:9px;
+  border:0;border-radius:13px;padding:14px;margin-bottom:9px;
+  font:inherit;font-size:15px;font-weight:600;cursor:pointer;
+}
+.auth-btn:active{transform:scale(.985)}
+.auth-btn.discord{background:#5865f2;color:#fff}
+.auth-btn.google{background:#f4f3ef;color:#1a1c24}
+.auth-mark{font-size:11px;opacity:.85}
+.auth-note{font-size:12px;color:var(--ink-dim);text-align:center;margin-top:10px}
+
+.sheet-who{
+  margin-top:16px;font-size:13px;color:var(--ink-dim);
+  display:flex;align-items:center;gap:9px;
+}
+.sheet-who[hidden]{display:none}
+.sheet-who .av{width:24px;height:24px;border-radius:50%;background:#2a2d3d}
+.sheet-who .out{
+  margin-left:auto;background:none;border:0;font:inherit;font-size:12px;
+  color:var(--ink-dim);text-decoration:underline;cursor:pointer;padding:4px;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sheet-scrim,.sheet-body{transition:none}
+}
+
 .hint{
   position:fixed;left:0;right:0;
   bottom:calc(10px + var(--safe-b));

@@ -10,12 +10,61 @@ you like, swipe when you're bored.
 
 - Plain HTML, CSS and JavaScript — no build step
 - Three.js (r128) from CDN
-- Supabase for scores and leaderboards _(not wired yet)_
+- Supabase for auth, scores and leaderboards
 - Deployed on Vercel as a static site
 
 ## Run it
 
 Open `index.html` in a browser. That's it.
+
+With `config.js` blank the app runs on a **seeded local mock backend** — the
+leaderboard, ranks, the sign-in prompt and the guest merge all work offline. Fill
+in the two Supabase values to go live; nothing else changes.
+
+## Backend
+
+### One-time setup
+
+1. **Supabase project** → copy the Project URL and anon key from Settings → API
+   into `config.js`. Both are public; RLS is what protects the data. The
+   `service_role` key must never go in this repo.
+2. **Run `supabase/schema.sql`** in the SQL editor. Creates the three tables,
+   the RLS policies, and the functions. Safe to re-run.
+3. **Discord** → [developer portal](https://discord.com/developers/applications)
+   → OAuth2 → add redirect `https://<project-ref>.supabase.co/auth/v1/callback`.
+   Paste client id/secret into Supabase → Auth → Providers → Discord.
+4. **Google** → Cloud Console → OAuth client (Web) → same callback URL. Paste
+   into Supabase → Auth → Providers → Google.
+5. **Supabase → Auth → URL Configuration** → Site URL is your production domain;
+   add `http://localhost:8123` so local dev works. Set the production domain on
+   Vercel *before* this step or you'll be chasing preview URLs.
+
+### How it fits together
+
+`backend.js` is the only file that talks to the network, and it presents the same
+surface whether it's running the mock or Supabase. Two rules shape it:
+
+**The feed never waits on the network.** `submit()` appends to a localStorage
+outbox and returns; the flush runs behind it and retries, with permanent
+validation failures dropped rather than retried forever. Personal best is written
+to localStorage *before* the submit, so a dead network costs you a rank line and
+nothing else.
+
+**The client never writes scores.** RLS denies inserts on `scores` outright. The
+only way in is `submit_score()`, a security-definer function that checks the
+score against a per-game ceiling, rejects implausible points-per-second, rate
+limits per device, and takes `player_id` from `auth.uid()` — never from the
+caller. `app.js` accumulates real play time in the frame loop rather than wall
+time, so the rate check means something.
+
+**Guest merge.** Every run carries a `device_id` from the first swipe. Sign-in
+calls `claim_device_scores()`, which reattaches those rows to the account. The
+device id is a random UUID on purpose: a guessable one would let anyone claim
+someone else's runs.
+
+**OAuth leaves the page.** That's unavoidable with any hosted provider. The sheet
+stashes the current card before redirecting and `app.js` puts that game back on
+card 0 on return, so you land where you left.
 
 ## Architecture
 
@@ -32,8 +81,7 @@ The scrolling DOM is transparent chrome: score, rail, title, rule. The canvases 
 
 ## The games
 
-Only **Hardwater** is wired up right now. `games/fit.js` and `games/placeholder.js` are still
-in the repo but not loaded — add their `<script>` tags back to `index.html` to bring them in.
+Three are loaded: **Hardwater**, **Fit** and **Lock**.
 
 ### Hardwater — ice fishing
 
@@ -96,12 +144,18 @@ game stays a single drop-in file.
 
 ## Status
 
+Against the build spec's Definition of Done:
+
 - [x] Vertical snap feed with momentum
-- [x] A/B renderer harness, auto start / auto stop
-- [x] DOM control layer for games that need a stick or a knob
-- [x] Hardwater — walk, hook, fight, land
-- [ ] Second game back in the feed (swiping currently reshuffles the same one)
+- [x] 3+ playable games — Hardwater, Fit, Lock
+- [x] Auto start / auto stop
+- [x] Endless feed
+- [x] Guest play, then login — device ID from the first swipe, OAuth offered
+      only at a rank worth claiming
+- [x] Persisted scores — server-validated writes
+- [x] Live leaderboard — top 10 plus your own rank, on the card
+- [x] Community hooks — per-game board, "you beat N% of players", challenge link
+- [ ] **Deployed public URL** — the one row still failing
+- [ ] Supabase credentials in `config.js` (running on the mock until then)
 - [ ] Sound — reel clicks and the strike, muted by default
-- [ ] Scores persisted to Supabase
-- [ ] Live leaderboard
-- [ ] Guest play with device ID
+- [ ] Ghost rival and daily board

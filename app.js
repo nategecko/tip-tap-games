@@ -138,11 +138,26 @@
           isBest ? 'new best — tap to play again' : 'tap to play again';
         card.overEl.hidden = false;
         if (navigator.vibrate) navigator.vibrate(35);
-        // TODO: submit score to Supabase here
+
+        // local best is already saved above, so the run is never lost if this
+        // never lands. fire-and-forget: nothing here blocks the game loop.
+        var slug = card.def.slug;
+        Backend.submit(slug, live.score, Math.round(live.playMs)).then(function (standing) {
+          if (!standing) return;
+          if (standing.rank) {
+            card.overEl.querySelector('.over-sub').textContent =
+              '#' + standing.rank + ' — tap to play again';
+          }
+          // only offer sign-in when there's a rank worth claiming
+          if (live.index === current) Sheet.maybePrompt(slug, standing);
+        });
       }
     };
 
     live.game = card.def.create(ctx);
+    // accumulated in frame(): real play time, not wall time. cards mount ahead
+    // of being reached, and a card can be scrolled away from mid-run.
+    live.playMs = 0;
     card.scoreEl.textContent = '0';
     card.overEl.hidden = true;
     s.slot = live;
@@ -214,10 +229,37 @@
       b.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
       b.addEventListener('click', function (e) {
         e.stopPropagation();
-        console.log('rail action:', b.dataset.act, card.def.slug);
-        // TODO: leaderboard sheet, like, share
+        var act = b.dataset.act;
+        if (act === 'board') {
+          Sheet.open(card.def.slug);
+        } else if (act === 'share') {
+          shareCard(card);
+        } else {
+          console.log('rail action:', act, card.def.slug);   // TODO: like
+        }
       });
     });
+  }
+
+  /* ---------- share ---------- */
+  // challenge link: lands the recipient on this exact game card
+  function shareCard(card) {
+    var url = location.origin + location.pathname + '?g=' + encodeURIComponent(card.def.slug);
+    var best = bestFor(card.def.slug);
+    var text = best
+      ? 'I scored ' + best + ' on ' + card.def.title + '. Beat it.'
+      : 'Play ' + card.def.title + ' on Tip Tap Games.';
+    if (navigator.share) {
+      navigator.share({ title: 'Tip Tap Games', text: text, url: url }).catch(function () {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text + ' ' + url).then(function () {
+        if (hint) {
+          hint.textContent = 'link copied';
+          hint.classList.remove('gone');
+          setTimeout(function () { hint.classList.add('gone'); }, 1600);
+        }
+      }).catch(function () {});
+    }
   }
 
   /* ---------- scroll ---------- */
@@ -269,7 +311,10 @@
         var s = slots[i];
         if (!s.slot) continue;
         var isActive = (s.slot.index === current);
-        if (isActive && !s.slot.dead && s.slot.game.update) s.slot.game.update(dt);
+        if (isActive && !s.slot.dead && s.slot.game.update) {
+          s.slot.game.update(dt);
+          s.slot.playMs += dt * 1000;
+        }
         // only draw what can actually be seen
         if (s.slot.index === base || s.slot.index === base + 1) {
           s.gl.render(s.slot.game.scene, s.slot.game.camera);
@@ -282,6 +327,29 @@
   }
 
   /* ---------- boot ---------- */
+
+  // put a specific game on the first card — used by challenge links (?g=slug)
+  // and to land you back where you were after the OAuth round trip
+  function preferFirst(slug) {
+    for (var gi = 0; gi < GAMES.length; gi++) {
+      if (GAMES[gi].slug === slug) { order[0] = gi; return true; }
+    }
+    return false;
+  }
+
+  // OAuth is a full-page redirect, so remember the card before leaving
+  Sheet.setStashHook(function () {
+    var c = cards[current];
+    Backend.stashReturn({ slug: c ? c.def.slug : null });
+  });
+
+  var returning = Backend.takeReturn();
+  var wanted = returning && returning.slug;
+  if (!wanted) {
+    try { wanted = new URLSearchParams(location.search).get('g'); } catch (e) { /* ignore */ }
+  }
+  if (wanted) preferFirst(wanted);
+
   ensureCards(1);
   measure();
   onScroll();
@@ -289,6 +357,13 @@
   mount(0);
   mount(1);
   requestAnimationFrame(frame);
+
+  // once auth settles, confirm the claim without pulling anyone off a game
+  Backend.ready.then(function () {
+    if (!returning) return;
+    var s = Backend.session();
+    if (s) Sheet.open(returning.slug, 'Signed in as ' + s.handle + '. Your runs are claimed.');
+  });
 
   window.addEventListener('orientationchange', function () {
     setTimeout(function () { measure(); onScroll(); }, 250);

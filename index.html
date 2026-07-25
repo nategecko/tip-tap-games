@@ -49,10 +49,35 @@
 
 <div id="hint" class="hint">swipe up for a different game</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="games/icefishing.js"></script>
-<!-- kept, not loaded: games/fit.js, games/placeholder.js -->
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-scrim"></div>
+  <div class="sheet-body" role="dialog" aria-modal="true" aria-label="Leaderboard">
+    <div class="sheet-grab"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">Leaderboard</div>
+      <div class="sheet-sub"></div>
+    </div>
+    <ol class="board"></ol>
+    <div class="sheet-auth" hidden>
+      <button class="auth-btn discord" data-provider="discord">
+        <span class="auth-mark">&#9679;</span> Continue with Discord
+      </button>
+      <button class="auth-btn google" data-provider="google">
+        <span class="auth-mark">&#9679;</span> Continue with Google
+      </button>
+      <div class="auth-note">Your guest runs come with you. Nothing is lost.</div>
+    </div>
+    <div class="sheet-who" hidden></div>
+  </div>
+</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="config.js"></script>
+<script src="backend.js"></script>
+<script src="sheet.js"></script>
+<script src="games/icefishing.js"></script>
+<script src="games/fit.js"></script>
+<script src="games/placeholder.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
