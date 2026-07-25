@@ -81,7 +81,21 @@ The scrolling DOM is transparent chrome: score, rail, title, rule. The canvases 
 
 ## The games
 
-Three are loaded: **Hardwater**, **Fit** and **Lock**.
+Four are loaded: **Hardwater**, **Keeper**, **Fit** and **Lock**.
+
+### Keeper — you're in goal
+
+Tap a side to dive that way. Shots down the middle you block by standing still,
+which makes a dive a commitment rather than a reflex — three outcomes out of two
+buttons plus the option of doing nothing. Later shots curl late: go early and
+you're beaten, hold and you can read it. Concede three and the run ends.
+
+Portrait forces the whole layout. A regulation 7.32m goal cannot fit a 9:16
+frame without pushing the camera so far back the keeper is a speck, so the goal
+is arcade-scaled to 3.9 and the camera sits at exactly 7.2 units — the closest
+distance that still fits both posts. That also means the camera is behind the
+net looking through it, like a TV camera behind the goal, so the net is
+deliberately sparse and faint rather than a full grid.
 
 ### Hardwater — ice fishing
 
@@ -147,7 +161,7 @@ game stays a single drop-in file.
 Against the build spec's Definition of Done:
 
 - [x] Vertical snap feed with momentum
-- [x] 3+ playable games — Hardwater, Fit, Lock
+- [x] 3+ playable games — Hardwater, Keeper, Fit, Lock
 - [x] Auto start / auto stop
 - [x] Endless feed
 - [x] Guest play, then login — device ID from the first swipe, OAuth offered
