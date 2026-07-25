@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0d0d12">
+<title>Tip Tap Games</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<canvas id="cvA" class="stage"></canvas>
+<canvas id="cvB" class="stage"></canvas>
+
+<div id="feed" class="feed"></div>
+
+<template id="cardTpl">
+  <section class="card">
+    <div class="hud-top">
+      <div class="score">0</div>
+      <div class="best">best 0</div>
+    </div>
+
+    <div class="rail">
+      <button class="rail-btn" data-act="board" aria-label="Leaderboard">
+        <span class="ico">&#9733;</span><span class="lbl">rank</span>
+      </button>
+      <button class="rail-btn" data-act="like" aria-label="Like">
+        <span class="ico">&#9825;</span><span class="lbl">like</span>
+      </button>
+      <button class="rail-btn" data-act="share" aria-label="Share">
+        <span class="ico">&#8631;</span><span class="lbl">share</span>
+      </button>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="title"></div>
+      <div class="rule"></div>
+    </div>
+
+    <div class="over" hidden>
+      <div class="over-score">0</div>
+      <div class="over-sub">tap to play again</div>
+    </div>
+  </section>
+</template>
+
+<div id="hint" class="hint">swipe up for a different game</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="games/fit.js"></script>
+<script src="games/placeholder.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
