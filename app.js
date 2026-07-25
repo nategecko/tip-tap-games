@@ -300,7 +300,11 @@
 
   /* ---------- loop ---------- */
   var last = performance.now();
-  function frame(now) {
+  var lastTick = 0;
+  var loopId = 0;
+
+  function step(now) {
+    lastTick = now;
     var dt = Math.min((now - last) / 1000, 0.05);
     last = now;
 
@@ -323,8 +327,32 @@
     } catch (e) {
       console.error('frame', e);
     }
-    requestAnimationFrame(frame);
   }
+
+  // The generation id guarantees only one live chain, so a restart can never
+  // leave two loops running against the same renderers.
+  function startLoop() {
+    var id = ++loopId;
+    (function run(now) {
+      if (id !== loopId) return;
+      step(now || performance.now());
+      requestAnimationFrame(run);
+    })(performance.now());
+  }
+
+  /* A single rAF chain is fragile: if the page is loaded — or restored from
+     bfcache — while the tab isn't compositing, the callback can be registered
+     and never fire, and nothing ever restarts it. The feed is then black
+     forever. Anyone who opens the link and switches apps mid-load hits this,
+     so watch the clock and restart the chain if it stops ticking. */
+  function kickLoop() {
+    if (performance.now() - lastTick < 500) return;   // healthy, leave it alone
+    startLoop();
+  }
+  document.addEventListener('visibilitychange', kickLoop);
+  window.addEventListener('pageshow', kickLoop);
+  window.addEventListener('focus', kickLoop);
+  setInterval(kickLoop, 1000);
 
   /* ---------- boot ---------- */
 
@@ -356,7 +384,7 @@
   current = 0;
   mount(0);
   mount(1);
-  requestAnimationFrame(frame);
+  startLoop();
 
   // once auth settles, confirm the claim without pulling anyone off a game
   Backend.ready.then(function () {
