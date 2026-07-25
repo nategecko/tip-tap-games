@@ -93,6 +93,13 @@ html,body{
 }
 .over-sub{font-size:13px;color:var(--ink-dim);margin-top:10px}
 
+/* per-card layer owned by the mounted game; games add their own controls here
+   and must set pointer-events:auto + touch-action:none on anything draggable */
+.ctrl{
+  position:absolute;left:0;right:0;top:0;bottom:0;
+  z-index:3;pointer-events:none;
+}
+
 .hint{
   position:fixed;left:0;right:0;
   bottom:calc(10px + var(--safe-b));

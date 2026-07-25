@@ -70,7 +70,8 @@
       scoreEl: node.querySelector('.score'),
       bestEl: node.querySelector('.best'),
       overEl: node.querySelector('.over'),
-      overScoreEl: node.querySelector('.over-score')
+      overScoreEl: node.querySelector('.over-score'),
+      ctrlEl: node.querySelector('.ctrl')
     };
     card.bestEl.textContent = 'best ' + bestFor(def.slug);
     bindPointer(card);
@@ -115,6 +116,10 @@
       THREE: THREE,
       width: W,
       height: H,
+      // games with on-screen controls own this layer; it is wiped on unmount.
+      // it sits above the canvas and is pointer-events:none until a game opts in.
+      overlay: card.ctrlEl,
+      card: card.el,
       setScore: function (n) {
         live.score = n;
         card.scoreEl.textContent = String(n);
@@ -150,7 +155,11 @@
     if (s.slot.game && s.slot.game.dispose) {
       try { s.slot.game.dispose(); } catch (e) { console.warn(e); }
     }
-    if (s.slot.card) s.slot.card.overEl.hidden = true;
+    if (s.slot.card) {
+      s.slot.card.overEl.hidden = true;
+      s.slot.card.ctrlEl.innerHTML = '';
+      s.slot.card.el.className = 'card';   // drop any classes the game set
+    }
     s.slot = null;
   }
 
@@ -253,16 +262,21 @@
     var dt = Math.min((now - last) / 1000, 0.05);
     last = now;
 
-    var base = Math.floor(feed.scrollTop / H);
-    for (var i = 0; i < 2; i++) {
-      var s = slots[i];
-      if (!s.slot) continue;
-      var isActive = (s.slot.index === current);
-      if (isActive && !s.slot.dead && s.slot.game.update) s.slot.game.update(dt);
-      // only draw what can actually be seen
-      if (s.slot.index === base || s.slot.index === base + 1) {
-        s.gl.render(s.slot.game.scene, s.slot.game.camera);
+    // one throwing frame must never kill the loop — that would black out the whole feed
+    try {
+      var base = Math.floor(feed.scrollTop / H);
+      for (var i = 0; i < 2; i++) {
+        var s = slots[i];
+        if (!s.slot) continue;
+        var isActive = (s.slot.index === current);
+        if (isActive && !s.slot.dead && s.slot.game.update) s.slot.game.update(dt);
+        // only draw what can actually be seen
+        if (s.slot.index === base || s.slot.index === base + 1) {
+          s.gl.render(s.slot.game.scene, s.slot.game.camera);
+        }
       }
+    } catch (e) {
+      console.error('frame', e);
     }
     requestAnimationFrame(frame);
   }
