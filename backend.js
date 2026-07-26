@@ -129,7 +129,30 @@ window.Backend = (function () {
     };
   }
 
+  function mockLikes() {
+    var db = mockDb();
+    if (!db.likes) { db.likes = {}; write(K_MOCK, db); }
+    return db.likes;
+  }
+
   var MOCK = {
+    likeCounts: function () {
+      var L = mockLikes(), out = {};
+      (window.__TIPTAP_GAMES__ || []).forEach(function (g) {
+        var e = L[g.slug] || { seed: 0, mine: false };
+        out[g.slug] = { count: e.seed + (e.mine ? 1 : 0), liked: !!e.mine };
+      });
+      return Promise.resolve(out);
+    },
+    toggleLike: function (slug) {
+      var db = mockDb();
+      if (!db.likes) db.likes = {};
+      var e = db.likes[slug] || { seed: Math.floor(Math.random() * 40) + 3, mine: false };
+      e.mine = !e.mine;
+      db.likes[slug] = e;
+      write(K_MOCK, db);
+      return Promise.resolve({ liked: e.mine, count: e.seed + (e.mine ? 1 : 0) });
+    },
     submit: function (slug, score) {
       var db = mockSeed(slug);
       db.scores.push({
@@ -227,6 +250,20 @@ window.Backend = (function () {
   }
 
   var LIVEAPI = {
+    likeCounts: async function () {
+      var r = await supa.rpc('like_counts', { p_device_id: deviceId });
+      if (r.error) throw r.error;
+      var out = {};
+      (r.data || []).forEach(function (row) {
+        out[row.slug] = { count: Number(row.likes) || 0, liked: !!row.liked };
+      });
+      return out;
+    },
+    toggleLike: async function (slug) {
+      var r = await supa.rpc('toggle_like', { p_device_id: deviceId, p_game_slug: slug });
+      if (r.error) throw r.error;
+      return { liked: !!r.data.liked, count: Number(r.data.count) || 0 };
+    },
     submit: async function (slug, score, durationMs) {
       var r = await supa.rpc('submit_score', {
         p_device_id: deviceId, p_game_slug: slug,
@@ -313,9 +350,28 @@ window.Backend = (function () {
 
   function impl() { return LIVE ? LIVEAPI : MOCK; }
 
+  /* Like counts are fetched once for the whole feed and cached, so a card can
+     render its count synchronously instead of firing a query per mount. */
+  var likeCache = {};
+  var likeSubs = [];
+  function emitLikes() {
+    likeSubs.slice().forEach(function (fn) {
+      try { fn(likeCache); } catch (e) { console.warn(e); }
+    });
+  }
+  function loadLikes() {
+    return impl().likeCounts().then(function (m) {
+      likeCache = m || {};
+      emitLikes();
+      return likeCache;
+    }).catch(function (e) { console.warn('likeCounts', e); return likeCache; });
+  }
+
   var ready = (LIVE ? initLive().catch(function (e) {
     console.warn('supabase init failed, staying offline', e);
-  }) : Promise.resolve()).then(function () { return flush(); });
+  }) : Promise.resolve()).then(function () {
+    return Promise.all([flush(), loadLikes()]);
+  });
 
   return {
     live: LIVE,
@@ -357,6 +413,32 @@ window.Backend = (function () {
     },
 
     signOut: function () { return impl().signOut(); },
+
+    likesFor: function (slug) { return likeCache[slug] || { count: 0, liked: false }; },
+    onLikes: function (fn) { likeSubs.push(fn); return function () {
+      likeSubs = likeSubs.filter(function (f) { return f !== fn; });
+    }; },
+
+    /* Optimistic: flip locally so the tap feels instant, then reconcile with
+       whatever the server actually says. */
+    toggleLike: function (slug) {
+      var cur = likeCache[slug] || { count: 0, liked: false };
+      likeCache[slug] = {
+        count: Math.max(0, cur.count + (cur.liked ? -1 : 1)),
+        liked: !cur.liked
+      };
+      emitLikes();
+      return impl().toggleLike(slug).then(function (res) {
+        likeCache[slug] = res;
+        emitLikes();
+        return res;
+      }).catch(function (e) {
+        likeCache[slug] = cur;      // put it back if the write failed
+        emitLikes();
+        console.warn('toggleLike', e);
+        return cur;
+      });
+    },
 
     /* redirect-and-restore: OAuth leaves the page, so remember where we were */
     stashReturn: function (state) { write(K_RETURN, state); },

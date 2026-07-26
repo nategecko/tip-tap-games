@@ -41,6 +41,16 @@ create table if not exists public.scores (
   created_at  timestamptz not null default now()
 );
 
+create table if not exists public.likes (
+  id         bigint generated always as identity primary key,
+  game_slug  text not null references public.games(slug),
+  device_id  uuid not null,
+  player_id  uuid references public.players(id) on delete set null,
+  created_at timestamptz not null default now(),
+  unique (game_slug, device_id)          -- one like per device per game
+);
+create index if not exists likes_game_idx on public.likes (game_slug);
+
 create index if not exists scores_board_idx  on public.scores (game_slug, score desc);
 create index if not exists scores_player_idx on public.scores (player_id, game_slug);
 create index if not exists scores_claim_idx  on public.scores (device_id) where player_id is null;
@@ -72,6 +82,7 @@ update public.games set is_active = false where slug in ('fit', 'lock', 'drift')
 alter table public.players enable row level security;
 alter table public.games   enable row level security;
 alter table public.scores  enable row level security;
+alter table public.likes   enable row level security;
 
 drop policy if exists players_read      on public.players;
 drop policy if exists players_write_self on public.players;
@@ -88,6 +99,10 @@ create policy games_read on public.games for select using (is_active);
 -- board is public to read; there is deliberately no insert/update policy,
 -- so the only write path is submit_score() below
 create policy scores_read on public.scores for select using (true);
+
+-- counts are public; like/unlike goes through toggle_like() only
+drop policy if exists likes_read on public.likes;
+create policy likes_read on public.likes for select using (true);
 
 -- ---------------------------------------------------------------- helpers
 
@@ -220,6 +235,48 @@ language sql stable security definer set search_path = public, pg_temp as $$
   limit greatest(1, least(coalesce(p_limit, 10), 100));
 $$;
 
+-- ---------------------------------------------------------------- likes
+
+create or replace function public.toggle_like(p_device_id uuid, p_game_slug text)
+returns json
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  v_liked boolean;
+  v_count integer;
+begin
+  if p_device_id is null then
+    raise exception 'device_id required';
+  end if;
+  if not exists (select 1 from games where slug = p_game_slug and is_active) then
+    raise exception 'unknown game %', p_game_slug using errcode = '22023';
+  end if;
+
+  if exists (select 1 from likes where game_slug = p_game_slug and device_id = p_device_id) then
+    delete from likes where game_slug = p_game_slug and device_id = p_device_id;
+    v_liked := false;
+  else
+    insert into likes (game_slug, device_id, player_id)
+    values (p_game_slug, p_device_id, auth.uid())
+    on conflict (game_slug, device_id) do nothing;
+    v_liked := true;
+  end if;
+
+  select count(*) into v_count from likes where game_slug = p_game_slug;
+  return json_build_object('liked', v_liked, 'count', v_count);
+end $$;
+
+-- one round trip for the whole feed rather than a query per card
+create or replace function public.like_counts(p_device_id uuid default null)
+returns table (slug text, likes bigint, liked boolean)
+language sql stable security definer set search_path = public, pg_temp as $$
+  select g.slug,
+         (select count(*) from likes l where l.game_slug = g.slug),
+         exists (select 1 from likes l2
+                  where l2.game_slug = g.slug and l2.device_id = p_device_id)
+  from games g
+  where g.is_active;
+$$;
+
 -- ---------------------------------------------------------------- sign-in
 
 -- Create/refresh the players row from the OAuth metadata. Called right after
@@ -297,5 +354,7 @@ revoke all on function public.ensure_player(uuid)                          from 
 grant execute on function public.submit_score(uuid, text, integer, integer) to anon, authenticated;
 grant execute on function public.my_standing(text, uuid)                    to anon, authenticated;
 grant execute on function public.leaderboard(text, uuid, integer)           to anon, authenticated;
+grant execute on function public.toggle_like(uuid, text)                    to anon, authenticated;
+grant execute on function public.like_counts(uuid)                          to anon, authenticated;
 grant execute on function public.ensure_player(uuid)                        to authenticated;
 grant execute on function public.claim_device_scores(uuid)                  to authenticated;

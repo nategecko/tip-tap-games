@@ -71,9 +71,11 @@
       bestEl: node.querySelector('.best'),
       overEl: node.querySelector('.over'),
       overScoreEl: node.querySelector('.over-score'),
-      ctrlEl: node.querySelector('.ctrl')
+      ctrlEl: node.querySelector('.ctrl'),
+      likeBtn: node.querySelector('.rail-btn[data-act="like"]')
     };
     card.bestEl.textContent = 'best ' + bestFor(def.slug);
+    paintLike(card);
     bindPointer(card);
     cards[index] = card;
     return card;
@@ -234,12 +236,33 @@
           Sheet.open(card.def.slug);
         } else if (act === 'share') {
           shareCard(card);
-        } else {
-          console.log('rail action:', act, card.def.slug);   // TODO: like
+        } else if (act === 'like') {
+          Backend.toggleLike(card.def.slug);
+          if (navigator.vibrate) navigator.vibrate(12);
         }
       });
     });
   }
+
+  /* ---------- likes ---------- */
+  function niceCount(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(n < 10000000 ? 1 : 0) + 'm';
+    if (n >= 1000) return (n / 1000).toFixed(n < 10000 ? 1 : 0) + 'k';
+    return String(n);
+  }
+
+  function paintLike(card) {
+    if (!card.likeBtn) return;
+    var st = Backend.likesFor(card.def.slug);
+    card.likeBtn.classList.toggle('liked', !!st.liked);
+    card.likeBtn.querySelector('.ico').innerHTML = st.liked ? '&#9829;' : '&#9825;';
+    card.likeBtn.querySelector('.lbl').textContent = st.count ? niceCount(st.count) : 'like';
+  }
+
+  // one subscription repaints every card that shows the affected game
+  Backend.onLikes(function () {
+    for (var i = 0; i < cards.length; i++) if (cards[i]) paintLike(cards[i]);
+  });
 
   /* ---------- share ---------- */
   // challenge link: lands the recipient on this exact game card

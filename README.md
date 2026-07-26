@@ -62,6 +62,12 @@ calls `claim_device_scores()`, which reattaches those rows to the account. The
 device id is a random UUID on purpose: a guessable one would let anyone claim
 someone else's runs.
 
+**Likes.** One per device per game, toggled through `toggle_like()`; RLS denies
+direct writes the same way it does for scores. Counts for the whole feed come
+from a single `like_counts()` call at boot and are cached, so a card renders its
+count synchronously instead of firing a query per mount. The tap flips the UI
+optimistically and rolls back if the write fails.
+
 **OAuth leaves the page.** That's unavoidable with any hosted provider. The sheet
 stashes the current card before redirecting and `app.js` puts that game back on
 card 0 on return, so you land where you left.

@@ -49,14 +49,15 @@ html,body{
   pointer-events:none;
 }
 .score{
-  font-size:34px;font-weight:600;line-height:1;
+  font-size:34px;font-weight:700;line-height:1;
   font-variant-numeric:tabular-nums;
   letter-spacing:-.02em;
-  text-shadow:0 2px 12px rgba(0,0,0,.5);
+  text-shadow:0 1px 3px rgba(0,0,0,.9),0 2px 16px rgba(0,0,0,.7);
 }
 .best{
-  font-size:11px;color:var(--ink-dim);margin-top:4px;
+  font-size:11px;color:rgba(246,246,242,.82);margin-top:4px;
   font-variant-numeric:tabular-nums;
+  text-shadow:0 1px 3px rgba(0,0,0,.9);
 }
 
 .rail{
@@ -71,15 +72,36 @@ html,body{
 }
 .rail-btn:active{transform:scale(.9)}
 .ico{font-size:24px;line-height:1}
-.lbl{font-size:10px;color:var(--ink-dim)}
+.lbl{font-size:10px;color:rgba(246,246,242,.82);font-variant-numeric:tabular-nums;
+  text-shadow:0 1px 3px rgba(0,0,0,.85)}
 
+/* liked: filled heart, and a small pop so the tap registers visually */
+.rail-btn.liked .ico{color:#ff4d6d}
+.rail-btn.liked .lbl{color:#ff8fa3}
+.rail-btn .ico{transition:transform .18s cubic-bezier(.2,1.6,.4,1),color .2s ease}
+.rail-btn.liked .ico{transform:scale(1.16)}
+
+/* The title and rule sit over whatever the game is rendering — snow, bright
+   grass, a white outfield — so a plain shadow is not enough. A soft scrim
+   anchored to the left keeps them legible on any background, and it works
+   whether a game has moved this block to the top or left it at the bottom. */
 .hud-bottom{
-  position:absolute;left:18px;bottom:calc(26px + var(--safe-b));
-  right:74px;pointer-events:none;
+  position:absolute;left:0;right:0;bottom:calc(18px + var(--safe-b));
+  padding:38px 78px 10px 18px;
+  pointer-events:none;
+  /* generous padding so the fade finishes inside the box instead of being
+     clipped into a visible band edge */
+  background:radial-gradient(150% 260% at 0% 55%,
+    rgba(4,8,16,.68) 0%, rgba(4,8,16,.30) 46%, rgba(4,8,16,0) 84%);
 }
-.title{font-size:16px;font-weight:600;letter-spacing:-.01em;
-  text-shadow:0 2px 10px rgba(0,0,0,.5)}
-.rule{font-size:13px;color:var(--ink-dim);margin-top:3px;line-height:1.35}
+.title{
+  font-size:16px;font-weight:700;letter-spacing:-.01em;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.95),0 2px 12px rgba(0,0,0,.8);
+}
+.rule{
+  font-size:13px;color:rgba(246,246,242,.88);margin-top:3px;line-height:1.35;
+  text-shadow:0 1px 2px rgba(0,0,0,.95),0 2px 10px rgba(0,0,0,.72);
+}
 
 .over{
   position:absolute;left:0;right:0;top:50%;
@@ -186,7 +208,8 @@ html,body{
   position:fixed;left:0;right:0;
   bottom:calc(10px + var(--safe-b));
   z-index:2;text-align:center;
-  font-size:12px;color:var(--ink-dim);
+  font-size:12px;color:rgba(246,246,242,.8);
+  text-shadow:0 1px 3px rgba(0,0,0,.9),0 2px 10px rgba(0,0,0,.7);
   pointer-events:none;
   animation:bob 1.8s ease-in-out infinite;
 }

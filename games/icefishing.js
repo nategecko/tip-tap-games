@@ -58,7 +58,7 @@
     var s = document.createElement('style');
     s.id = CSS_ID;
     s.textContent = `
-.card.ice .hud-bottom{top:calc(88px + var(--safe-t));bottom:auto;right:18px}
+.card.ice .hud-bottom{top:calc(84px + var(--safe-t));bottom:auto}
 .card.ice .rail{transition:opacity .28s ease}
 .card.ice.fighting .rail{opacity:0;pointer-events:none}
 
