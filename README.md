@@ -81,7 +81,26 @@ The scrolling DOM is transparent chrome: score, rail, title, rule. The canvases 
 
 ## The games
 
-Four: **Hardwater**, **Keeper**, **Downhill** and **Snow Fight**.
+Five: **Hardwater**, **Keeper**, **Downhill**, **Snow Fight** and **Drift**.
+
+### Drift — a mountain pass, throttle pinned
+
+Hold to break traction. The corner throws the car toward the outside and the
+slip you build fights it, so too little understeers off the edge and too much
+rotates you into the inside — a balance rather than a timing window. Coasting
+through a corner without drifting resets the combo, which costs you without
+ending the run. Touching either edge does end it.
+
+The road is a single geometry rewritten every frame from a curvature function
+of distance, with guardrails and pines driven by the same per-segment offsets so
+everything bends together. Segments are also drawn *behind* the car so the
+ribbon reaches past the chase camera instead of stopping in a hard edge, and the
+offsets are normalised so the car's own segment is the origin — otherwise x = 0
+isn't the middle of the road and the car sits visibly off-line.
+
+The scoring is built to reward commitment. A bot that micro-corrects to stay
+centred survived 8036m for 1060 points at x2; one that committed to real slides
+went 8397m for 3644 at x8. Same survival, 3.4x the score for actually drifting.
 
 The two starter games from the original scaffold (Fit and Lock) have been
 removed. They're recoverable from git history if ever wanted, and their rows in
@@ -198,7 +217,7 @@ game stays a single drop-in file.
 Against the build spec's Definition of Done:
 
 - [x] Vertical snap feed with momentum
-- [x] 3+ playable games — Hardwater, Keeper, Downhill, Snow Fight
+- [x] 3+ playable games — Hardwater, Keeper, Downhill, Snow Fight, Drift
 - [x] Auto start / auto stop
 - [x] Endless feed
 - [x] Guest play, then login — device ID from the first swipe, OAuth offered
