@@ -81,7 +81,23 @@ The scrolling DOM is transparent chrome: score, rail, title, rule. The canvases 
 
 ## The games
 
-Four: **Hardwater**, **Keeper**, **Downhill** and **Snow Fight**.
+Five: **Hardwater**, **Keeper**, **Downhill**, **Snow Fight** and
+**Home Run Derby**.
+
+### Home Run Derby — square one up
+
+Tap to swing. Timing sets power *and* direction: early pulls it foul, late
+slices it foul, dead-on goes out to centre. Three pitch types arrive at
+0.70s, 0.92s and 1.06s, so a fixed rhythm gets you nothing — the swing that
+squares up a fastball is far too early for a change-up. Three misses ends it,
+and the camera rides every hit out with the distance counting up.
+
+Two things are deliberately unrealistic. The ball is scaled well past its real
+37mm, because at 18m on a phone a real baseball is a single pixel and tracking
+it is the entire game. And it scales again in flight, since the chase camera
+falls a long way behind on a 450-foot shot. The field itself is built to real
+dimensions: 60'6" to the mound, 90-foot basepaths, 330 down the lines to 400
+in centre.
 
 Removed along the way: the two starter games from the original scaffold (Fit and
 Lock) and a hold-to-drift racing game. All are recoverable from git history, and
@@ -198,7 +214,7 @@ game stays a single drop-in file.
 Against the build spec's Definition of Done:
 
 - [x] Vertical snap feed with momentum
-- [x] 3+ playable games — Hardwater, Keeper, Downhill, Snow Fight
+- [x] 3+ playable games — Hardwater, Keeper, Downhill, Snow Fight, Home Run Derby
 - [x] Auto start / auto stop
 - [x] Endless feed
 - [x] Guest play, then login — device ID from the first swipe, OAuth offered

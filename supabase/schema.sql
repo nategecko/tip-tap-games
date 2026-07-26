@@ -54,7 +54,8 @@ insert into public.games (slug, title, rule_text, max_score, max_rate) values
   ('hardwater', 'Hardwater', 'Walk the ice. Crank the reel. Ease off when it runs.', 5000, 6),
   ('keeper',    'Keeper',    'Tap a side to dive. Stay put for the middle.',         1000, 1.5),
   ('downhill',  'Downhill',  'Carve past the rocks. Ski the gates.',                20000, 60),
-  ('snowfight', 'Snow Fight','Tap the red ones. Blue is your team.',                1500, 12)
+  ('snowfight', 'Snow Fight','Tap the red ones. Blue is your team.',                1500, 12),
+  ('homerun',   'Home Run Derby','Tap to swing. Time it and send it.',            60000, 250)
 on conflict (slug) do update
   set title = excluded.title,
       rule_text = excluded.rule_text,
