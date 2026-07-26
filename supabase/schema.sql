@@ -54,14 +54,17 @@ insert into public.games (slug, title, rule_text, max_score, max_rate) values
   ('hardwater', 'Hardwater', 'Walk the ice. Crank the reel. Ease off when it runs.', 5000, 6),
   ('keeper',    'Keeper',    'Tap a side to dive. Stay put for the middle.',         1000, 1.5),
   ('downhill',  'Downhill',  'Carve past the rocks. Ski the gates.',                20000, 60),
-  ('snowfight', 'Snow Fight','Tap the red ones. Blue is your team.',                1500, 12),
-  ('fit',       'Fit',       'Drag to rotate. Match the hole.',                        2000, 3),
-  ('lock',      'Lock',      'Tap when the rings meet.',                               2000, 2.5)
+  ('snowfight', 'Snow Fight','Tap the red ones. Blue is your team.',                1500, 12)
 on conflict (slug) do update
   set title = excluded.title,
       rule_text = excluded.rule_text,
       max_score = excluded.max_score,
       max_rate = excluded.max_rate;
+
+-- Retired starter games. Deactivating rather than deleting keeps their score
+-- history intact while removing them from the feed; is_active gates both the
+-- games_read policy and submit_score, so no new runs can be filed against them.
+update public.games set is_active = false where slug in ('fit', 'lock');
 
 -- ---------------------------------------------------------------- rls
 

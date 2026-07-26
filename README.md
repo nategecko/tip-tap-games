@@ -81,8 +81,12 @@ The scrolling DOM is transparent chrome: score, rail, title, rule. The canvases 
 
 ## The games
 
-Six are loaded: **Hardwater**, **Keeper**, **Downhill**, **Snow Fight**, **Fit**
-and **Lock**.
+Four: **Hardwater**, **Keeper**, **Downhill** and **Snow Fight**.
+
+The two starter games from the original scaffold (Fit and Lock) have been
+removed. They're recoverable from git history if ever wanted, and their rows in
+the `games` table are set inactive rather than deleted so existing score history
+survives.
 
 ### Snow Fight — forts across the yard
 
@@ -194,7 +198,7 @@ game stays a single drop-in file.
 Against the build spec's Definition of Done:
 
 - [x] Vertical snap feed with momentum
-- [x] 3+ playable games — Hardwater, Keeper, Downhill, Snow Fight, Fit, Lock
+- [x] 3+ playable games — Hardwater, Keeper, Downhill, Snow Fight
 - [x] Auto start / auto stop
 - [x] Endless feed
 - [x] Guest play, then login — device ID from the first swipe, OAuth offered
