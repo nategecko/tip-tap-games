@@ -294,13 +294,13 @@
       var m = new T.Mesh(kBallGeo, ballMat);
       m.visible = false;
       scene.add(m);
-      balls.push({ m: m, active: false, t: 0, dur: 1, from: new T.Vector3(), to: new T.Vector3(), arc: 1, incoming: false });
+      balls.push({ m: m, active: false, t: 0, dur: 1, from: new T.Vector3(), to: new T.Vector3(), arc: 1, incoming: false, land: null });
     }
     function throwBall(fx, fy, fz, tx, ty, tz, dur, arc, incoming) {
       for (var i = 0; i < BALLS; i++) {
         var b = balls[i];
         if (b.active) continue;
-        b.active = true; b.t = 0; b.dur = dur; b.arc = arc; b.incoming = !!incoming;
+        b.active = true; b.t = 0; b.dur = dur; b.arc = arc; b.incoming = !!incoming; b.land = null;
         b.from.set(fx, fy, fz); b.to.set(tx, ty, tz);
         b.m.visible = true;
         b.m.position.set(fx, fy, fz);
@@ -449,13 +449,43 @@
 
     // hit testing in screen space rather than by raycast: targets are small and
     // far, and a generous radius that scales with depth is much kinder on a phone
+    // Centre of the visible mass — head plus upper torso. The kid group sits at
+    // y = -1.15 when hidden and 0 when up, so the world height is simply the
+    // local offset plus that. (Adding the 1.15 back on top put the hit zone a
+    // full metre above the character, which is why taps on a visible kid
+    // registered as misses.)
+    var aimWorld = new T.Vector3();
+    function hitPointOf(s) {
+      return aimWorld.set(s.x, 0.95 + s.kid.g.position.y, s.z);
+    }
     function screenOf(s) {
-      projV.set(s.x, 1.02 + s.kid.g.position.y + 1.15, s.z);
-      projV.project(camera);
+      var p = hitPointOf(s);
+      var dist = camera.position.distanceTo(p);
+      projV.copy(p).project(camera);
       return {
         x: (projV.x * 0.5 + 0.5) * vw,
         y: (-projV.y * 0.5 + 0.5) * vh,
-        d: camera.position.distanceTo(new T.Vector3(s.x, 1.0, s.z))
+        d: dist
+      };
+    }
+
+    /* Where a thrown ball should land when you don't hit anyone: along the ray
+       through the tap, meeting the snow if it points downward. A fixed target
+       made every miss fly to the same spot regardless of aim. */
+    var rayV = new T.Vector3();
+    function aimPoint(x, y) {
+      rayV.set((x / vw) * 2 - 1, -((y / vh) * 2 - 1), 0.5);
+      rayV.unproject(camera).sub(camera.position).normalize();
+      var t;
+      if (rayV.y < -0.02) {
+        t = clamp((0.05 - camera.position.y) / rayV.y, 1.5, 34);   // hits the snow
+      } else {
+        t = 26;                                                     // sails over
+      }
+      return {
+        x: camera.position.x + rayV.x * t,
+        y: Math.max(0.05, camera.position.y + rayV.y * t),
+        z: camera.position.z + rayV.z * t
       };
     }
 
@@ -476,10 +506,16 @@
       }
 
       // the throw is cosmetic; the hit is decided on tap so it always feels honest
-      var tx = best ? best.x : 0;
-      var ty = best ? 1.15 : 1.6;
-      var tz = best ? best.z : -14;
-      throwBall(0, 0.9, 2.0, tx, ty, tz, best ? 0.22 : 0.5, best ? 0.5 : 1.6, false);
+      var b;
+      if (best) {
+        var hp = hitPointOf(best);
+        b = throwBall(0, 1.0, 2.0, hp.x, hp.y, hp.z, 0.22, 0.35, false);
+        if (b) b.land = { x: hp.x, y: hp.y, z: hp.z, n: 12, spread: 0.5, up: 2.0 };
+      } else {
+        var ap = aimPoint(x, y);
+        b = throwBall(0, 1.0, 2.0, ap.x, ap.y, ap.z, 0.5, 1.1, false);
+        if (b) b.land = { x: ap.x, y: ap.y, z: ap.z, n: 7, spread: 0.35, up: 1.3 };
+      }
       if (navigator.vibrate) navigator.vibrate(8);
 
       if (!best) return;
@@ -490,13 +526,11 @@
         ctx.setScore(score);
         best.state = 'hit';
         best.hitT = 0;
-        burst(best.x, 1.15, best.z, 12, 0.5, 2.0);
         flash('180,235,255', 0.16);
         if (mult > 1) toast('+' + mult, '#9fe8ff');
       } else {
         best.state = 'ducking';
         best.t = 0;
-        burst(best.x, 1.15, best.z, 10, 0.45, 1.7);
         flash('255,120,90', 0.4);
         loseLife('OWN TEAM');
       }
@@ -582,6 +616,9 @@
           if (b.incoming) {
             splatT = 0.55;
             loseLife('SNOWBALLED');
+          } else if (b.land) {
+            burst(b.land.x, b.land.y, b.land.z, b.land.n, b.land.spread, b.land.up);
+            b.land = null;
           }
         }
       }
