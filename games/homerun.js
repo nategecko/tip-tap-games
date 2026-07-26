@@ -68,7 +68,7 @@
   text-shadow:0 4px 26px rgba(0,0,0,.7)}
 .hr-dist small{font-size:20px;font-weight:600;opacity:.8}
 
-.hr-hint{position:absolute;left:0;right:0;bottom:calc(104px + var(--safe-b));
+.hr-hint{position:absolute;left:0;right:0;bottom:calc(130px + var(--safe-b));
   text-align:center;font-size:13px;color:rgba(255,244,228,.85);
   text-shadow:0 2px 10px rgba(0,0,0,.6);transition:opacity .3s ease}
 

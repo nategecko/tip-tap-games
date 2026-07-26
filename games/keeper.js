@@ -62,7 +62,7 @@
   font-size:34px;font-weight:700;letter-spacing:-.02em;opacity:0;
   text-shadow:0 3px 22px rgba(0,0,0,.75)}
 
-.keep-hint{position:absolute;left:0;right:0;bottom:calc(104px + var(--safe-b));
+.keep-hint{position:absolute;left:0;right:0;bottom:calc(130px + var(--safe-b));
   text-align:center;font-size:13px;color:rgba(244,243,239,.7);
   text-shadow:0 2px 10px rgba(0,0,0,.7);transition:opacity .3s ease}
 

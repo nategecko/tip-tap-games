@@ -82,25 +82,30 @@ html,body{
 .rail-btn.liked .ico{transform:scale(1.16)}
 
 /* The title and rule sit over whatever the game is rendering — snow, bright
-   grass, a white outfield — so a plain shadow is not enough. A soft scrim
-   anchored to the left keeps them legible on any background, and it works
-   whether a game has moved this block to the top or left it at the bottom. */
+   grass, a white outfield — so they need their own surface. A small rounded
+   panel that hugs the text, styled like the leaderboard sheet. `right:auto`
+   makes an absolutely positioned box shrink to fit its content, so it never
+   stretches across the screen; max-width keeps it clear of the rail. */
 .hud-bottom{
-  position:absolute;left:0;right:0;bottom:calc(18px + var(--safe-b));
-  padding:38px 78px 10px 18px;
+  position:absolute;left:12px;right:auto;
+  bottom:calc(34px + var(--safe-b));   /* clears the swipe hint */
+  max-width:calc(100% - 104px);
+  padding:11px 15px 12px;
   pointer-events:none;
-  /* generous padding so the fade finishes inside the box instead of being
-     clipped into a visible band edge */
-  background:radial-gradient(150% 260% at 0% 55%,
-    rgba(4,8,16,.68) 0%, rgba(4,8,16,.30) 46%, rgba(4,8,16,0) 84%);
+  background:rgba(15,17,26,.68);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:15px;
+  backdrop-filter:blur(8px) saturate(120%);
+  -webkit-backdrop-filter:blur(8px) saturate(120%);
+  box-shadow:0 6px 20px rgba(0,0,0,.32);
 }
 .title{
   font-size:16px;font-weight:700;letter-spacing:-.01em;color:#fff;
-  text-shadow:0 1px 2px rgba(0,0,0,.95),0 2px 12px rgba(0,0,0,.8);
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
 }
 .rule{
-  font-size:13px;color:rgba(246,246,242,.88);margin-top:3px;line-height:1.35;
-  text-shadow:0 1px 2px rgba(0,0,0,.95),0 2px 10px rgba(0,0,0,.72);
+  font-size:13px;color:rgba(246,246,242,.82);margin-top:2px;line-height:1.35;
+  text-shadow:0 1px 2px rgba(0,0,0,.45);
 }
 
 .over{

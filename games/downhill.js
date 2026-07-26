@@ -46,7 +46,7 @@
   font-size:30px;font-weight:700;letter-spacing:-.02em;opacity:0;
   text-shadow:0 3px 20px rgba(0,0,0,.65)}
 
-.dh-hint{position:absolute;left:0;right:0;bottom:calc(104px + var(--safe-b));
+.dh-hint{position:absolute;left:0;right:0;bottom:calc(130px + var(--safe-b));
   text-align:center;font-size:13px;color:rgba(244,243,239,.75);
   text-shadow:0 2px 10px rgba(0,0,0,.6);transition:opacity .3s ease}
 
