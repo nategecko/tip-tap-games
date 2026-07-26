@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tip Tap Games — cover</title>
+<style>
+  /* 1280x720. Each phone embeds the real app in an iframe rather than a
+     mockup, so every screen is a genuine frame of the game running. */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1280px;height:720px;overflow:hidden;background:#07080d}
+
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:#f4f3ef;
+    position:relative;
+  }
+
+  /* stage glow, picking up the accent colours used across the games */
+  .glow{position:absolute;inset:0;pointer-events:none}
+  .glow::before{
+    content:'';position:absolute;left:50%;top:-14%;
+    width:1150px;height:760px;transform:translateX(-50%);
+    background:radial-gradient(50% 50% at 50% 50%,rgba(90,140,255,.28) 0%,rgba(90,140,255,0) 70%);
+  }
+  .glow::after{
+    content:'';position:absolute;left:50%;bottom:-32%;
+    width:1400px;height:620px;transform:translateX(-50%);
+    background:radial-gradient(50% 50% at 50% 50%,rgba(255,140,70,.20) 0%,rgba(255,140,70,0) 70%);
+  }
+
+  .grid{
+    position:absolute;inset:0;pointer-events:none;opacity:.35;
+    background-image:
+      linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(70% 60% at 50% 40%,#000 30%,transparent 100%);
+    -webkit-mask-image:radial-gradient(70% 60% at 50% 40%,#000 30%,transparent 100%);
+  }
+
+  header{
+    position:absolute;left:0;right:0;top:34px;text-align:center;z-index:5;
+  }
+  h1{
+    font-size:74px;font-weight:800;letter-spacing:-.045em;line-height:.95;
+    background:linear-gradient(180deg,#ffffff 30%,#a8c4ff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 6px 26px rgba(0,0,0,.6));
+  }
+  .tag{
+    margin-top:12px;font-size:16px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;color:rgba(232,238,255,.62);
+  }
+  .tag b{color:#ffd166;font-weight:700}
+
+  .fan{position:absolute;inset:0;z-index:3}
+
+  .phone{position:absolute;transform-origin:50% 100%}
+  .body{
+    background:linear-gradient(160deg,#23252f 0%,#111219 60%);
+    border-radius:34px;padding:8px;
+    border:1px solid rgba(255,255,255,.13);
+    box-shadow:
+      0 34px 70px rgba(0,0,0,.62),
+      0 6px 18px rgba(0,0,0,.5),
+      inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .screen{position:relative;overflow:hidden;border-radius:27px;background:#000}
+  .screen iframe{border:0;display:block;transform-origin:0 0;width:390px;height:844px}
+  /* notch */
+  .screen::after{
+    content:'';position:absolute;left:50%;top:7px;transform:translateX(-50%);
+    width:33%;height:14px;border-radius:9px;background:#05060a;z-index:2;
+  }
+  /* keeps the flanking screens from competing with the hero */
+  .dim{position:absolute;inset:0;z-index:3;pointer-events:none}
+
+  .name{
+    position:absolute;left:0;right:0;bottom:-34px;text-align:center;
+    font-size:14px;font-weight:700;letter-spacing:.06em;
+    color:rgba(238,243,255,.9);text-transform:uppercase;
+    text-shadow:0 2px 10px rgba(0,0,0,.8);
+  }
+  .phone.hero .name{font-size:16px;color:#fff;bottom:-34px}
+
+  footer{
+    position:absolute;left:0;right:0;bottom:12px;text-align:center;z-index:5;
+    font-size:14px;letter-spacing:.05em;color:rgba(226,233,250,.42);
+  }
+  footer b{color:rgba(226,233,250,.72);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="glow"></div>
+<div class="grid"></div>
+
+<header>
+  <h1>TIP TAP GAMES</h1>
+  <div class="tag">doomscroll &mdash; except <b>you're the one playing</b></div>
+</header>
+
+<div class="fan" id="fan"></div>
+
+<footer>five 3D mini games &nbsp;·&nbsp; one thumb &nbsp;·&nbsp; <b>swipe for the next</b></footer>
+
+<script>
+/* Five phones fanned across the stage: hero in the middle, the rest stepped
+   down in size and tilted outward. Each holds a live iframe of the real app
+   pinned to one game via ?g=<slug>. */
+var PHONES = [
+  { slug:'hardwater', name:'Hardwater',      x:152,  y:566, w:150, rot:-13, z:1, dim:.14 },
+  { slug:'keeper',    name:'Keeper',         x:396,  y:600, w:176, rot:-7,  z:2, dim:.06 },
+  { slug:'homerun',   name:'Home Run Derby', x:640,  y:626, w:208, rot:0,   z:4, dim:0,   hero:true },
+  { slug:'downhill',  name:'Downhill',       x:884,  y:600, w:176, rot:7,   z:2, dim:.06 },
+  { slug:'snowfight', name:'Snow Fight',     x:1128, y:566, w:150, rot:13,  z:1, dim:.14 }
+];
+
+var PHONE_W = 390, PHONE_H = 844;   // the viewport each game is designed for
+
+var fan = document.getElementById('fan');
+
+PHONES.forEach(function (p) {
+  var scale = p.w / PHONE_W;
+  var h = Math.round(PHONE_H * scale);
+
+  var el = document.createElement('div');
+  el.className = 'phone' + (p.hero ? ' hero' : '');
+  el.style.cssText =
+    'left:' + (p.x - p.w / 2 - 8) + 'px;' +
+    'top:'  + (p.y - h - 8) + 'px;' +
+    'z-index:' + p.z + ';' +
+    'transform:rotate(' + p.rot + 'deg);';
+
+  el.innerHTML =
+    '<div class="body">' +
+      '<div class="screen" style="width:' + p.w + 'px;height:' + h + 'px">' +
+        '<iframe src="index.html?g=' + p.slug + '" scrolling="no" ' +
+                'style="transform:scale(' + scale + ')"></iframe>' +
+        (p.dim ? '<div class="dim" style="background:rgba(6,8,16,' + p.dim + ')"></div>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="name">' + p.name + '</div>';
+
+  fan.appendChild(el);
+});
+</script>
+</body>
+</html>

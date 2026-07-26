@@ -328,7 +328,11 @@
 
   function step(now) {
     lastTick = now;
-    var dt = Math.min((now - last) / 1000, 0.05);
+    // Clamped at BOTH ends. startLoop() calls step(performance.now())
+    // synchronously and rAF then reports the frame-start time, which can be
+    // earlier — a negative dt runs every game backwards for a frame, which is
+    // how Downhill managed to count its distance down to -16.
+    var dt = Math.min(Math.max((now - last) / 1000, 0), 0.05);
     last = now;
 
     // one throwing frame must never kill the loop — that would black out the whole feed

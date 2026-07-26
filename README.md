@@ -1,5 +1,7 @@
 # Tip Tap Games
 
+![Tip Tap Games](cover.png)
+
 A vertical, swipe-through feed where every card is a playable 3D mini game instead of a video.
 No menus, no tutorials, no loading. Land on a game that's already running, play as long as
 you like, swipe when you're bored.
@@ -172,6 +174,23 @@ The whole game is the tension arc on that reel. The fish alternates between runn
 Crank while it runs and tension spikes and the line snaps; crank while it's tired and it comes
 up clean. You watch the fish, not the meter. Every landed fish buys back clock; the run ends
 when the clock does.
+
+## Cover image
+
+`cover.html` is the cover generator. It is not a mockup: each phone embeds the
+real app in an iframe pinned to one game via `?g=<slug>`, so every screen is a
+genuine frame of that game running. Re-render it with a local server up:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless=new --use-gl=angle --use-angle=metal \
+  --force-device-scale-factor=2 --window-size=1280,720 \
+  --virtual-time-budget=3200 --screenshot=cover.png \
+  http://localhost:8123/cover.html
+```
+
+Keep the virtual time budget short. Run it long and the games play themselves
+into a game-over screen before the shutter.
 
 ## Adding a game
 
