@@ -336,12 +336,22 @@
     var batter = buildPlayer(homeKit);
     var helm = new T.Mesh(helmGeo, helmMat); helm.position.y = 1.1; batter.g.add(helm);
     batter.head.visible = false;
+    // The hands are their own group at chest height and the bat's knob is
+    // parented to it, so the grip is always literally in the hands rather than
+    // floating near the shoulder.
+    var hands = new T.Group();
+    hands.position.set(0.05, 0.68, 0.34);   // out in front of the chest, not inside it
+    batter.g.add(hands);
     var batPivot = new T.Group();
-    batPivot.position.set(0.1, 0.98, 0);
     var bat = new T.Mesh(batGeo, batMat);
-    bat.position.y = 0.43;
+    bat.position.y = 0.43;            // knob at the pivot, barrel up the shaft
     batPivot.add(bat);
-    batter.g.add(batPivot);
+    hands.add(batPivot);
+    // arms converge on that point instead of hanging straight down
+    // angles solved so both hands actually meet the knob rather than passing
+    // through the torso
+    batter.armR.rotation.set(-1.00, 0, -0.43);
+    batter.armL.rotation.set(-1.00, 0, 0.61);
     batter.g.position.set(-0.85, 0, 1.0);
     batter.g.rotation.y = 0.35;
     scene.add(batter.g);
@@ -622,10 +632,6 @@
           -Math.cos(hit.spray) * reach
         );
         ball.rotation.x -= dt * 12;
-        // the chase camera falls a long way behind on a 450ft shot, so scale the
-        // ball with distance or the payoff is a single pixel in the sky
-        var camDist = camera.position.distanceTo(ball.position);
-        ball.scale.setScalar(clamp(camDist / 11, 1, 9));
         bShadow.position.set(ball.position.x, 0.03, ball.position.z);
         bShadow.scale.setScalar(clamp(1 - ball.position.y / 40, 0.25, 1));
 
@@ -655,11 +661,15 @@
       if (swung && (state === ST_FLIGHT || state === ST_RESET)) {
         swingPhase = clamp(stateT / 0.32, 0, 1);
       }
-      batPivot.rotation.z = lerp(-0.30, 1.85, ease(swingPhase));
-      batPivot.rotation.x = lerp(-0.95, 0.35, ease(swingPhase));
-      batter.g.rotation.y = 0.35 + swingPhase * 0.5;
-      batter.armR.rotation.x = -0.7 - swingPhase * 0.5;
-      batter.armL.rotation.x = -0.7 - swingPhase * 0.5;
+      var sw = ease(swingPhase);
+      hands.rotation.y = lerp(-0.55, 1.10, sw);       // hands drive through the zone
+      batPivot.rotation.z = lerp(-0.50, 1.30, sw);
+      batPivot.rotation.x = lerp(-0.80, 0.25, sw);
+      batter.g.rotation.y = 0.35 + sw * 0.45;
+      batter.armR.rotation.z = lerp(-0.43, -0.16, sw);
+      batter.armL.rotation.z = lerp(0.61, 0.30, sw);
+      batter.armR.rotation.x = lerp(-1.00, -1.30, sw);
+      batter.armL.rotation.x = lerp(-1.00, -1.30, sw);
 
       /* ---- crowd ---- */
       var now = performance.now() * 0.001;
@@ -690,19 +700,27 @@
       /* ---- camera: sits behind the plate, then rides the ball out ---- */
       var wantPos, wantAim;
       if (state === ST_FLIGHT) {
-        var back = 14 + hit.t * 26;
-        wantPos = tmpV.set(
-          ball.position.x * 0.35 - Math.sin(hit.spray) * back * 0.15,
-          3.5 + ball.position.y * 0.55,
-          4.6 + hit.t * 10
-        ).clone();
-        wantAim = ball.position.clone();
+        /* Trail the ball at a fixed offset. Letting the camera fall behind is
+           what forced the old distance-scaling hack, which made the ball
+           balloon and shrink; holding the distance keeps it one honest size. */
+        var dirx = Math.sin(hit.spray), dirz = -Math.cos(hit.spray);
+        var FOLLOW = 9.5, LIFT = 3.0;
+        var trail = new T.Vector3(
+          ball.position.x - dirx * FOLLOW,
+          ball.position.y + LIFT,
+          ball.position.z - dirz * FOLLOW
+        );
+        // hold on the plate for a beat so the contact is actually seen, then
+        // hand over to the trailing shot
+        var handover = clamp((hit.t - 0.05) / 0.13, 0, 1);
+        wantPos = camHome.clone().lerp(trail, ease(handover));
+        wantAim = camAim.clone().lerp(ball.position, ease(handover));
       } else {
         wantPos = camHome;
         wantAim = camAim;
       }
-      camPos.lerp(wantPos, 1 - Math.pow(state === ST_FLIGHT ? 0.02 : 0.0005, dt));
-      aimPos.lerp(wantAim, 1 - Math.pow(state === ST_FLIGHT ? 0.005 : 0.0005, dt));
+      camPos.lerp(wantPos, 1 - Math.pow(state === ST_FLIGHT ? 0.0008 : 0.0005, dt));
+      aimPos.lerp(wantAim, 1 - Math.pow(state === ST_FLIGHT ? 0.0008 : 0.0005, dt));
       camera.position.copy(camPos);
       if (camShake > 0) {
         camShake -= dt * 1.5;
@@ -759,6 +777,7 @@
     ctx.setScore(0);
     setOuts();
     newPitch();
+
 
 
     return {

@@ -92,12 +92,17 @@ slices it foul, dead-on goes out to centre. Three pitch types arrive at
 squares up a fastball is far too early for a change-up. Three misses ends it,
 and the camera rides every hit out with the distance counting up.
 
-Two things are deliberately unrealistic. The ball is scaled well past its real
-37mm, because at 18m on a phone a real baseball is a single pixel and tracking
-it is the entire game. And it scales again in flight, since the chase camera
-falls a long way behind on a 450-foot shot. The field itself is built to real
-dimensions: 60'6" to the mound, 90-foot basepaths, 330 down the lines to 400
-in centre.
+The ball is scaled well past its real 37mm, because at 18m on a phone a real
+baseball is a single pixel and tracking it is the entire game — but it is one
+constant size and never rescales. Keeping it readable in flight is the camera's
+job: it holds on the plate through contact, then trails the ball at a fixed
+distance, so the ball's apparent size stays put instead of ballooning.
+
+The bat's knob is parented to a hands group and the arm angles are solved to
+meet it, rather than the bat being positioned near the shoulder and hoping.
+
+The field is built to real dimensions: 60'6" to the mound, 90-foot basepaths,
+330 down the lines to 400 in centre.
 
 Removed along the way: the two starter games from the original scaffold (Fit and
 Lock) and a hold-to-drift racing game. All are recoverable from git history, and
