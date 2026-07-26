@@ -54,6 +54,7 @@ insert into public.games (slug, title, rule_text, max_score, max_rate) values
   ('hardwater', 'Hardwater', 'Walk the ice. Crank the reel. Ease off when it runs.', 5000, 6),
   ('keeper',    'Keeper',    'Tap a side to dive. Stay put for the middle.',         1000, 1.5),
   ('downhill',  'Downhill',  'Carve past the rocks. Ski the gates.',                20000, 60),
+  ('snowfight', 'Snow Fight','Tap the red ones. Blue is your team.',                1500, 12),
   ('fit',       'Fit',       'Drag to rotate. Match the hole.',                        2000, 3),
   ('lock',      'Lock',      'Tap when the rings meet.',                               2000, 2.5)
 on conflict (slug) do update

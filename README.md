@@ -81,7 +81,24 @@ The scrolling DOM is transparent chrome: score, rail, title, rule. The canvases 
 
 ## The games
 
-Five are loaded: **Hardwater**, **Keeper**, **Downhill**, **Fit** and **Lock**.
+Six are loaded: **Hardwater**, **Keeper**, **Downhill**, **Snow Fight**, **Fit**
+and **Lock**.
+
+### Snow Fight — forts across the yard
+
+Heads pop up from behind snow forts for about a second. Tap a red jacket to
+throw. Blue jackets are your own team, so mashing every target is exactly how
+you lose — hitting one costs a life and resets your multiplier. Let a red one
+finish winding up and you wear the snowball instead. Three mistakes ends it.
+
+The enemy's throwing arm rises over the whole window, so the throw is
+telegraphed rather than sprung on you. Hits are decided on tap and the thrown
+snowball is purely cosmetic, which keeps it feeling honest at distance.
+
+Targets are hit-tested in screen space with a radius that scales with depth,
+not by raycast — the far forts are small on a phone and a generous radius is
+much kinder than pixel-accurate picking. Forts are arranged in receding rows
+rather than a wide line for the same portrait-FOV reason as Keeper.
 
 ### Downhill — three lanes down a piste
 
@@ -177,7 +194,7 @@ game stays a single drop-in file.
 Against the build spec's Definition of Done:
 
 - [x] Vertical snap feed with momentum
-- [x] 3+ playable games — Hardwater, Keeper, Downhill, Fit, Lock
+- [x] 3+ playable games — Hardwater, Keeper, Downhill, Snow Fight, Fit, Lock
 - [x] Auto start / auto stop
 - [x] Endless feed
 - [x] Guest play, then login — device ID from the first swipe, OAuth offered
